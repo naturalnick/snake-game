@@ -5,7 +5,7 @@ const startingX = canvas.width / 2;
 const startingY = canvas.height / 2
 const gridSize = 10;
 
-let gameSpeed = 500;
+let gameSpeed = 100;
 let stopped = false;
 let score = 0;
 
@@ -17,6 +17,14 @@ const snake = {
     bodyParts: [
         {
             x: startingX,
+            y: startingY,
+        },
+        {
+            x: startingX - this.width,
+            y: startingY,
+        },
+        {
+            x: startingX - (this.width * 2),
             y: startingY,
         }
     ],
@@ -53,10 +61,11 @@ const snake = {
         }
     },
     grow: function () {
+        const tail = this.bodyParts[this.bodyParts.length - 1];
         if (this.dirX != 0) {
-            this.bodyParts.push({x: this.bodyParts[this.bodyParts.length - 1].x + (this.dirX * -1), y: this.bodyParts[this.bodyParts.length - 1].y});
+            this.bodyParts.push({x: tail.x + (this.dirX * -1), y: tail.y});
         } else if (this.dirY != 0) {
-            this.bodyParts.push({x: this.bodyParts[this.bodyParts.length - 1].x, y: this.bodyParts[this.bodyParts.length - 1].y + (this.dirY * -1)});
+            this.bodyParts.push({x: tail.x, y: tail.y + (this.dirY * -1)});
         }
     }
 }
@@ -97,18 +106,25 @@ function drawFood() {
 }
 
 function checkBounds() {
+    const headX = snake.bodyParts[0].x;
+    const headY = snake.bodyParts[0].y;
     //Snake hits sides
-    if (snake.bodyParts[0].x + snake.width > canvas.width || snake.bodyParts[0].x < 0) endGame();
-    if (snake.bodyParts[0].y + snake.width > canvas.height || snake.bodyParts[0].y < 0) endGame();
+    if (headX + snake.width > canvas.width || headX < 0) endGame();
+    if (headY + snake.width > canvas.height || headY < 0) endGame();
     //Snake hits food
-    if ((snake.bodyParts[0].x > food.x - food.width && snake.bodyParts[0].x < food.x + food.width) &&
-        (snake.bodyParts[0].y > food.y - food.width && snake.bodyParts[0].y < food.y + food.width)) {
+    if ((headX > food.x - food.width && headX < food.x + food.width) &&
+        (headY > food.y - food.width && headY < food.y + food.width)) {
         snake.grow();
         food.eaten = true;
         updateScore();
     }
     //snake hits self
-    //code
+    for (let n = 1; n < snake.bodyParts.length; n++) {
+        if ((headX > snake.bodyParts[n].x - snake.width && headX < snake.bodyParts[n].x + snake.width) &&
+            headY > snake.bodyParts[n].y - snake.width && headY < snake.bodyParts[n].y + snake.width) {
+            endGame();
+        }
+    }
 }
 
 function playGame() {
