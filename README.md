@@ -10,8 +10,8 @@ See it in action [here](https://naturalnick.github.io/snake-game/).
 
 <br>
 
-Screenshot:
-<image src="images/screenshot.png">
+Screenshot:<br>
+<img src="images/screenshot.png" width="75%">
 
 ## Summary
 
