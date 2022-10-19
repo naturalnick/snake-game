@@ -1,9 +1,9 @@
 const canvas = document.getElementById("game-canvas");
 const ctx = canvas.getContext("2d");
 
-const startingX = canvas.width / 2;
-const startingY = canvas.height / 2
-const gridSize = 10;
+const STARTING_X = canvas.width / 2;
+const STARTING_Y = canvas.height / 2
+const GRID_SIZE = 10;
 
 let gameSpeed = 100;
 let playing = false;
@@ -23,18 +23,26 @@ function newSnake() {
         dirY: 0,
         bodyParts: [
             {
-                x: startingX,
-                y: startingY,
+                x: STARTING_X,
+                y: STARTING_Y,
             },
             {
-                x: startingX - this.width,
-                y: startingY,
+                x: STARTING_X - this.width,
+                y: STARTING_Y,
             },
             {
-                x: startingX - (this.width * 2),
-                y: startingY,
+                x: STARTING_X - (this.width * 2),
+                y: STARTING_Y,
             }
         ],
+        grow: function () {
+            const tail = this.bodyParts[this.bodyParts.length - 1];
+            if (this.dirX != 0) {
+                this.bodyParts.push({ x: tail.x + (this.dirX * -1), y: tail.y });
+            } else if (this.dirY != 0) {
+                this.bodyParts.push({ x: tail.x, y: tail.y + (this.dirY * -1) });
+            }
+        },
         move: function () {
             for (let n = this.bodyParts.length - 1; n > 0; n--) {
                 this.bodyParts[n].x = this.bodyParts[n - 1].x
@@ -65,14 +73,6 @@ function newSnake() {
             if (this.dirX != 10) {
                 this.dirX = -10;
                 this.dirY = 0;
-            }
-        },
-        grow: function () {
-            const tail = this.bodyParts[this.bodyParts.length - 1];
-            if (this.dirX != 0) {
-                this.bodyParts.push({ x: tail.x + (this.dirX * -1), y: tail.y });
-            } else if (this.dirY != 0) {
-                this.bodyParts.push({ x: tail.x, y: tail.y + (this.dirY * -1) });
             }
         }
     }
@@ -121,6 +121,13 @@ function checkBounds() {
     //Snake hits sides
     if (headX + snake.width > canvas.width || headX < 0) endGame();
     if (headY + snake.width > canvas.height || headY < 0) endGame();
+    //snake hits self
+    for (let n = 1; n < snake.bodyParts.length; n++) {
+        if ((headX > snake.bodyParts[n].x - snake.width && headX < snake.bodyParts[n].x + snake.width) &&
+            headY > snake.bodyParts[n].y - snake.width && headY < snake.bodyParts[n].y + snake.width) {
+            endGame();
+        }
+    }
     //Snake hits food
     if ((headX > food.x - food.width && headX < food.x + food.width) &&
         (headY > food.y - food.width && headY < food.y + food.width)) {
@@ -128,13 +135,6 @@ function checkBounds() {
         food.eaten = true;
         score++;
         displayScore();
-    }
-    //snake hits self
-    for (let n = 1; n < snake.bodyParts.length; n++) {
-        if ((headX > snake.bodyParts[n].x - snake.width && headX < snake.bodyParts[n].x + snake.width) &&
-            headY > snake.bodyParts[n].y - snake.width && headY < snake.bodyParts[n].y + snake.width) {
-            endGame();
-        }
     }
 }
 
@@ -161,7 +161,7 @@ function resetGame() {
 
 function getRoundedRand(min, max) {
     const randomNum = Math.floor(Math.random() * (max - min + 1) + min);
-    const roundedNum = Math.round(randomNum / gridSize) * gridSize;
+    const roundedNum = Math.round(randomNum / GRID_SIZE) * GRID_SIZE;
     return roundedNum;
 }
 
@@ -192,10 +192,10 @@ function displayGameStatus() {
     ctx.textAlign = "center";
     if (playing) {
         ctx.fillStyle = "red";
-        ctx.fillText(lost, startingX, startingY);
+        ctx.fillText(lost, STARTING_X, STARTING_Y);
     } else {
         ctx.fillStyle = "green";
-        ctx.fillText(start, startingX, startingY);
+        ctx.fillText(start, STARTING_X, STARTING_Y);
     }
 }
 
