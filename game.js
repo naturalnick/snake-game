@@ -110,8 +110,8 @@ function drawFood() {
 }
 
 function generateNewFood() {
-    const foodX = getRandCoord(food.width, canvas.width - food.width);
-    const foodY = getRandCoord(food.width, canvas.height - food.width);
+    const foodX = getRoundedRand(food.width, canvas.width - food.width);
+    const foodY = getRoundedRand(food.width, canvas.height - food.width);
     food = newFood(foodX, foodY);
 }
 
@@ -159,7 +159,7 @@ function resetGame() {
     displayScore();
 }
 
-function getRandCoord(min, max) {
+function getRoundedRand(min, max) {
     const randomNum = Math.floor(Math.random() * (max - min + 1) + min);
     const roundedNum = Math.round(randomNum / gridSize) * gridSize;
     return roundedNum;
