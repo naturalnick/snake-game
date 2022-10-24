@@ -15,7 +15,7 @@ const game = {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		food.draw();
 		snake.draw();
-		checkBounds();
+		snake.checkBounds();
 		snake.move();
 	},
 	end() {
@@ -26,7 +26,6 @@ const game = {
 	reset() {
 		snake.reset();
 		food.reset();
-		console.log(snake.bodyParts);
 		game.score = 0;
 		this.displayScore();
 	},
@@ -113,6 +112,36 @@ const snake = {
 			this.dirY = 10;
 		}
 	},
+	checkBounds() {
+		const headX = this.bodyParts[0].x;
+		const headY = this.bodyParts[0].y;
+		//Snake hits sides
+		if (headX + GRID_SIZE > canvas.width || headX < 0) game.end();
+		if (headY + GRID_SIZE > canvas.height || headY < 0) game.end();
+		//snake hits self
+		for (let n = 1; n < snake.bodyParts.length; n++) {
+			if (
+				headX > this.bodyParts[n].x - GRID_SIZE &&
+				headX < this.bodyParts[n].x + GRID_SIZE &&
+				headY > this.bodyParts[n].y - GRID_SIZE &&
+				headY < this.bodyParts[n].y + GRID_SIZE
+			) {
+				game.end();
+			}
+		}
+		//Snake hits food
+		if (
+			headX > food.x - GRID_SIZE &&
+			headX < food.x + GRID_SIZE &&
+			headY > food.y - GRID_SIZE &&
+			headY < food.y + GRID_SIZE
+		) {
+			this.grow();
+			food.reset();
+			game.score += 10;
+			game.displayScore();
+		}
+	},
 	reset() {
 		this.dirX = 10;
 		this.dirY = 0;
@@ -134,15 +163,7 @@ const snake = {
 };
 
 const food = {
-	x: Math.floor((Math.random() * canvas.width) / GRID_SIZE) * GRID_SIZE,
-	y: Math.floor((Math.random() * canvas.height) / GRID_SIZE) * GRID_SIZE,
-	eaten: false,
 	draw() {
-		if (this.eaten) {
-			ctx.clearRect(food.x, food.y, GRID_SIZE, GRID_SIZE);
-			this.reset();
-			this.eaten = false;
-		}
 		ctx.beginPath();
 		ctx.rect(food.x, food.y, GRID_SIZE, GRID_SIZE);
 		ctx.fillStyle = "green";
@@ -156,37 +177,6 @@ const food = {
 			Math.floor((Math.random() * canvas.height) / GRID_SIZE) * GRID_SIZE;
 	},
 };
-
-function checkBounds() {
-	const headX = snake.bodyParts[0].x;
-	const headY = snake.bodyParts[0].y;
-	//Snake hits sides
-	if (headX + GRID_SIZE > canvas.width || headX < 0) game.end();
-	if (headY + GRID_SIZE > canvas.height || headY < 0) game.end();
-	//snake hits self
-	for (let n = 1; n < snake.bodyParts.length; n++) {
-		if (
-			headX > snake.bodyParts[n].x - GRID_SIZE &&
-			headX < snake.bodyParts[n].x + GRID_SIZE &&
-			headY > snake.bodyParts[n].y - GRID_SIZE &&
-			headY < snake.bodyParts[n].y + GRID_SIZE
-		) {
-			game.end();
-		}
-	}
-	//Snake hits food
-	if (
-		headX > food.x - GRID_SIZE &&
-		headX < food.x + GRID_SIZE &&
-		headY > food.y - GRID_SIZE &&
-		headY < food.y + GRID_SIZE
-	) {
-		snake.grow();
-		food.eaten = true;
-		game.score += 10;
-		game.displayScore();
-	}
-}
 
 document.addEventListener("keydown", function (event) {
 	if (event.key === " ") {
