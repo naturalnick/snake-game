@@ -7,9 +7,6 @@ const GRID_SIZE = 10;
 
 let interval;
 
-let snake = newSnake();
-let food = newFood();
-
 const game = {
 	speed: 100,
 	playing: false,
@@ -27,8 +24,9 @@ const game = {
 		game.playing = false;
 	},
 	reset() {
-		snake = newSnake();
-		generateNewFood();
+		snake.reset();
+		food.reset();
+		console.log(snake.bodyParts);
 		game.score = 0;
 		this.displayScore();
 	},
@@ -50,11 +48,75 @@ const game = {
 	},
 };
 
-function newSnake() {
-	return {
-		dirX: 10,
-		dirY: 0,
-		bodyParts: [
+const snake = {
+	dirX: 10,
+	dirY: 0,
+	bodyParts: [
+		{
+			x: STARTING_X,
+			y: STARTING_Y,
+		},
+		{
+			x: STARTING_X - GRID_SIZE,
+			y: STARTING_Y,
+		},
+		{
+			x: STARTING_X - GRID_SIZE * 2,
+			y: STARTING_Y,
+		},
+	],
+	draw() {
+		ctx.beginPath();
+		for (let n = 0; n < snake.bodyParts.length; n++) {
+			ctx.rect(
+				snake.bodyParts[n].x,
+				snake.bodyParts[n].y,
+				GRID_SIZE,
+				GRID_SIZE
+			);
+		}
+		ctx.fillStyle = "black";
+		ctx.fill();
+		ctx.closePath();
+	},
+	grow() {
+		const tail = this.bodyParts[this.bodyParts.length - 1];
+		if (this.dirX != 0) {
+			this.bodyParts.push({ x: tail.x + this.dirX * -1, y: tail.y });
+		} else if (this.dirY != 0) {
+			this.bodyParts.push({ x: tail.x, y: tail.y + this.dirY * -1 });
+		}
+	},
+	move() {
+		for (let n = this.bodyParts.length - 1; n > 0; n--) {
+			this.bodyParts[n].x = this.bodyParts[n - 1].x;
+			this.bodyParts[n].y = this.bodyParts[n - 1].y;
+		}
+		this.bodyParts[0].x += this.dirX;
+		this.bodyParts[0].y += this.dirY;
+	},
+	changeDirection(key) {
+		if (key === "ArrowRight" && this.dirX != -10) {
+			this.dirX = 10;
+			this.dirY = 0;
+		}
+		if (key === "ArrowLeft" && this.dirX != 10) {
+			this.dirX = -10;
+			this.dirY = 0;
+		}
+		if (key === "ArrowUp" && this.dirY != 10) {
+			this.dirX = 0;
+			this.dirY = -10;
+		}
+		if (key === "ArrowDown" && this.dirY != -10) {
+			this.dirX = 0;
+			this.dirY = 10;
+		}
+	},
+	reset() {
+		this.dirX = 10;
+		this.dirY = 0;
+		this.bodyParts = [
 			{
 				x: STARTING_X,
 				y: STARTING_Y,
@@ -67,82 +129,33 @@ function newSnake() {
 				x: STARTING_X - GRID_SIZE * 2,
 				y: STARTING_Y,
 			},
-		],
-		draw() {
-			ctx.beginPath();
-			for (let n = 0; n < snake.bodyParts.length; n++) {
-				ctx.rect(
-					snake.bodyParts[n].x,
-					snake.bodyParts[n].y,
-					GRID_SIZE,
-					GRID_SIZE
-				);
-			}
-			ctx.fillStyle = "black";
-			ctx.fill();
-			ctx.closePath();
-		},
-		grow() {
-			const tail = this.bodyParts[this.bodyParts.length - 1];
-			if (this.dirX != 0) {
-				this.bodyParts.push({ x: tail.x + this.dirX * -1, y: tail.y });
-			} else if (this.dirY != 0) {
-				this.bodyParts.push({ x: tail.x, y: tail.y + this.dirY * -1 });
-			}
-		},
-		move() {
-			for (let n = this.bodyParts.length - 1; n > 0; n--) {
-				this.bodyParts[n].x = this.bodyParts[n - 1].x;
-				this.bodyParts[n].y = this.bodyParts[n - 1].y;
-			}
-			this.bodyParts[0].x += this.dirX;
-			this.bodyParts[0].y += this.dirY;
-		},
-		changeDirection(key) {
-			if (key === "ArrowRight" && this.dirX != -10) {
-				this.dirX = 10;
-				this.dirY = 0;
-			}
-			if (key === "ArrowLeft" && this.dirX != 10) {
-				this.dirX = -10;
-				this.dirY = 0;
-			}
-			if (key === "ArrowUp" && this.dirY != 10) {
-				this.dirX = 0;
-				this.dirY = -10;
-			}
-			if (key === "ArrowDown" && this.dirY != -10) {
-				this.dirX = 0;
-				this.dirY = 10;
-			}
-		},
-	};
-}
+		];
+	},
+};
 
-function newFood(x, y) {
-	return {
-		x: x,
-		y: y,
-		eaten: false,
-		draw() {
-			if (food.eaten) {
-				ctx.clearRect(food.x, food.y, GRID_SIZE, GRID_SIZE);
-				generateNewFood();
-			}
-			ctx.beginPath();
-			ctx.rect(food.x, food.y, GRID_SIZE, GRID_SIZE);
-			ctx.fillStyle = "green";
-			ctx.fill();
-			ctx.closePath();
-		},
-	};
-}
-
-function generateNewFood() {
-	const foodX = getRoundedRand(GRID_SIZE, canvas.width - GRID_SIZE);
-	const foodY = getRoundedRand(GRID_SIZE, canvas.height - GRID_SIZE);
-	food = newFood(foodX, foodY);
-}
+const food = {
+	x: Math.floor((Math.random() * canvas.width) / GRID_SIZE) * GRID_SIZE,
+	y: Math.floor((Math.random() * canvas.height) / GRID_SIZE) * GRID_SIZE,
+	eaten: false,
+	draw() {
+		if (this.eaten) {
+			ctx.clearRect(food.x, food.y, GRID_SIZE, GRID_SIZE);
+			this.reset();
+			this.eaten = false;
+		}
+		ctx.beginPath();
+		ctx.rect(food.x, food.y, GRID_SIZE, GRID_SIZE);
+		ctx.fillStyle = "green";
+		ctx.fill();
+		ctx.closePath();
+	},
+	reset() {
+		this.x =
+			Math.floor((Math.random() * canvas.width) / GRID_SIZE) * GRID_SIZE;
+		this.y =
+			Math.floor((Math.random() * canvas.height) / GRID_SIZE) * GRID_SIZE;
+	},
+};
 
 function checkBounds() {
 	const headX = snake.bodyParts[0].x;
@@ -175,18 +188,12 @@ function checkBounds() {
 	}
 }
 
-function getRoundedRand(min, max) {
-	const randomNum = Math.floor(Math.random() * (max - min + 1) + min);
-	const roundedNum = Math.round(randomNum / GRID_SIZE) * GRID_SIZE;
-	return roundedNum;
-}
-
 document.addEventListener("keydown", function (event) {
-	if (event.key === " " || event.key === "Space") {
+	if (event.key === " ") {
 		if (!game.playing) {
 			game.reset();
-			interval = setInterval(game.play, game.speed);
 			game.playing = true;
+			interval = setInterval(game.play, game.speed);
 		}
 	} else {
 		snake.changeDirection(event.key);
