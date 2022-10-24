@@ -82,7 +82,7 @@ function newSnake() {
 			ctx.fill();
 			ctx.closePath();
 		},
-		grow: function () {
+		grow() {
 			const tail = this.bodyParts[this.bodyParts.length - 1];
 			if (this.dirX != 0) {
 				this.bodyParts.push({ x: tail.x + this.dirX * -1, y: tail.y });
@@ -90,7 +90,7 @@ function newSnake() {
 				this.bodyParts.push({ x: tail.x, y: tail.y + this.dirY * -1 });
 			}
 		},
-		move: function () {
+		move() {
 			for (let n = this.bodyParts.length - 1; n > 0; n--) {
 				this.bodyParts[n].x = this.bodyParts[n - 1].x;
 				this.bodyParts[n].y = this.bodyParts[n - 1].y;
@@ -98,50 +98,22 @@ function newSnake() {
 			this.bodyParts[0].x += this.dirX;
 			this.bodyParts[0].y += this.dirY;
 		},
-		// changeDirection(key) {
-		// 	if (key === "ArrowRight" && this.dirY != 10) {
-		// 		this.dirX = 0;
-		// 		this.dirY = -10;
-		// 		console.log("R");
-		// 	}
-		// 	if (key === "ArrowLeft" && this.dirY != -10) {
-		// 		this.dirX = 0;
-		// 		this.dirY = 10;
-		// 		console.log("L");
-		// 	}
-		// 	if (key === "ArrowUp" && this.dirX != -10) {
-		// 		this.dirX = 10;
-		// 		this.dirY = 0;
-		// 		console.log("U");
-		// 	}
-		// 	if (key === "ArrowDown" && this.dirX != 10) {
-		// 		this.dirX = -10;
-		// 		this.dirY = 0;
-		// 		console.log("down");
-		// 	}
-		// },
-		turnUp: function () {
-			if (this.dirY != 10) {
-				this.dirX = 0;
-				this.dirY = -10;
-			}
-		},
-		turnDown: function () {
-			if (this.dirY != -10) {
-				this.dirX = 0;
-				this.dirY = 10;
-			}
-		},
-		turnRight: function () {
-			if (this.dirX != -10) {
+		changeDirection(key) {
+			if (key === "ArrowRight" && this.dirX != -10) {
 				this.dirX = 10;
 				this.dirY = 0;
 			}
-		},
-		turnLeft: function () {
-			if (this.dirX != 10) {
+			if (key === "ArrowLeft" && this.dirX != 10) {
 				this.dirX = -10;
 				this.dirY = 0;
+			}
+			if (key === "ArrowUp" && this.dirY != 10) {
+				this.dirX = 0;
+				this.dirY = -10;
+			}
+			if (key === "ArrowDown" && this.dirY != -10) {
+				this.dirX = 0;
+				this.dirY = 10;
 			}
 		},
 	};
@@ -198,7 +170,7 @@ function checkBounds() {
 	) {
 		snake.grow();
 		food.eaten = true;
-		game.score++;
+		game.score += 10;
 		game.displayScore();
 	}
 }
@@ -209,26 +181,16 @@ function getRoundedRand(min, max) {
 	return roundedNum;
 }
 
-document.addEventListener(
-	"keydown",
-	function (event) {
-		if (event.key === "Right" || event.key === "ArrowRight") {
-			snake.turnRight();
-		} else if (event.key === "Left" || event.key === "ArrowLeft") {
-			snake.turnLeft();
-		} else if (event.key === "Up" || event.key === "ArrowUp") {
-			snake.turnUp();
-		} else if (event.key === "Down" || event.key === "ArrowDown") {
-			snake.turnDown();
-		} else if (event.key === " " || event.key === "Space") {
-			if (!game.playing) {
-				game.reset();
-				interval = setInterval(game.play, game.speed);
-				game.playing = true;
-			}
+document.addEventListener("keydown", function (event) {
+	if (event.key === " " || event.key === "Space") {
+		if (!game.playing) {
+			game.reset();
+			interval = setInterval(game.play, game.speed);
+			game.playing = true;
 		}
-	},
-	false
-);
+	} else {
+		snake.changeDirection(event.key);
+	}
+});
 
 game.displayStatus();
