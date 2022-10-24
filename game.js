@@ -16,8 +16,8 @@ const game = {
 	score: 0,
 	play() {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		drawFood();
-		drawSnake();
+		food.draw();
+		snake.draw();
 		checkBounds();
 		snake.move();
 	},
@@ -52,7 +52,6 @@ const game = {
 
 function newSnake() {
 	return {
-		width: 10,
 		dirX: 10,
 		dirY: 0,
 		bodyParts: [
@@ -61,14 +60,28 @@ function newSnake() {
 				y: STARTING_Y,
 			},
 			{
-				x: STARTING_X - this.width,
+				x: STARTING_X - GRID_SIZE,
 				y: STARTING_Y,
 			},
 			{
-				x: STARTING_X - this.width * 2,
+				x: STARTING_X - GRID_SIZE * 2,
 				y: STARTING_Y,
 			},
 		],
+		draw() {
+			ctx.beginPath();
+			for (let n = 0; n < snake.bodyParts.length; n++) {
+				ctx.rect(
+					snake.bodyParts[n].x,
+					snake.bodyParts[n].y,
+					GRID_SIZE,
+					GRID_SIZE
+				);
+			}
+			ctx.fillStyle = "black";
+			ctx.fill();
+			ctx.closePath();
+		},
 		grow: function () {
 			const tail = this.bodyParts[this.bodyParts.length - 1];
 			if (this.dirX != 0) {
@@ -136,43 +149,26 @@ function newSnake() {
 
 function newFood(x, y) {
 	return {
-		width: 10,
 		x: x,
 		y: y,
 		eaten: false,
+		draw() {
+			if (food.eaten) {
+				ctx.clearRect(food.x, food.y, GRID_SIZE, GRID_SIZE);
+				generateNewFood();
+			}
+			ctx.beginPath();
+			ctx.rect(food.x, food.y, GRID_SIZE, GRID_SIZE);
+			ctx.fillStyle = "green";
+			ctx.fill();
+			ctx.closePath();
+		},
 	};
 }
 
-function drawSnake() {
-	ctx.beginPath();
-	for (let n = 0; n < snake.bodyParts.length; n++) {
-		ctx.rect(
-			snake.bodyParts[n].x,
-			snake.bodyParts[n].y,
-			snake.width,
-			snake.width
-		);
-	}
-	ctx.fillStyle = "black";
-	ctx.fill();
-	ctx.closePath();
-}
-
-function drawFood() {
-	if (food.eaten) {
-		ctx.clearRect(food.x, food.y, food.width, food.width);
-		generateNewFood();
-	}
-	ctx.beginPath();
-	ctx.rect(food.x, food.y, food.width, food.width);
-	ctx.fillStyle = "green";
-	ctx.fill();
-	ctx.closePath();
-}
-
 function generateNewFood() {
-	const foodX = getRoundedRand(food.width, canvas.width - food.width);
-	const foodY = getRoundedRand(food.width, canvas.height - food.width);
+	const foodX = getRoundedRand(GRID_SIZE, canvas.width - GRID_SIZE);
+	const foodY = getRoundedRand(GRID_SIZE, canvas.height - GRID_SIZE);
 	food = newFood(foodX, foodY);
 }
 
@@ -180,25 +176,25 @@ function checkBounds() {
 	const headX = snake.bodyParts[0].x;
 	const headY = snake.bodyParts[0].y;
 	//Snake hits sides
-	if (headX + snake.width > canvas.width || headX < 0) game.end();
-	if (headY + snake.width > canvas.height || headY < 0) game.end();
+	if (headX + GRID_SIZE > canvas.width || headX < 0) game.end();
+	if (headY + GRID_SIZE > canvas.height || headY < 0) game.end();
 	//snake hits self
 	for (let n = 1; n < snake.bodyParts.length; n++) {
 		if (
-			headX > snake.bodyParts[n].x - snake.width &&
-			headX < snake.bodyParts[n].x + snake.width &&
-			headY > snake.bodyParts[n].y - snake.width &&
-			headY < snake.bodyParts[n].y + snake.width
+			headX > snake.bodyParts[n].x - GRID_SIZE &&
+			headX < snake.bodyParts[n].x + GRID_SIZE &&
+			headY > snake.bodyParts[n].y - GRID_SIZE &&
+			headY < snake.bodyParts[n].y + GRID_SIZE
 		) {
 			game.end();
 		}
 	}
 	//Snake hits food
 	if (
-		headX > food.x - food.width &&
-		headX < food.x + food.width &&
-		headY > food.y - food.width &&
-		headY < food.y + food.width
+		headX > food.x - GRID_SIZE &&
+		headX < food.x + GRID_SIZE &&
+		headY > food.y - GRID_SIZE &&
+		headY < food.y + GRID_SIZE
 	) {
 		snake.grow();
 		food.eaten = true;
