@@ -8,7 +8,7 @@ const GRID_SIZE = 20;
 let animationInterval = undefined;
 
 const game = {
-	speed: 100,
+	speed: 200,
 	playing: false,
 	score: 0,
 	play() {
