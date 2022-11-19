@@ -1,11 +1,11 @@
 const canvas = document.getElementById("game-canvas");
+canvas.width = 500;
+canvas.height = 400;
 const ctx = canvas.getContext("2d");
 
-const STARTING_X = canvas.width / 2;
-const STARTING_Y = canvas.height / 2;
-const GRID_SIZE = 10;
+const GRID_SIZE = 20;
 
-let interval;
+let animationInterval = undefined;
 
 const game = {
 	speed: 100,
@@ -19,7 +19,7 @@ const game = {
 		snake.move();
 	},
 	end() {
-		clearInterval(interval);
+		clearInterval(animationInterval);
 		game.displayStatus();
 		game.playing = false;
 	},
@@ -36,10 +36,10 @@ const game = {
 		ctx.textAlign = "center";
 		if (game.playing) {
 			ctx.fillStyle = "red";
-			ctx.fillText(lost, STARTING_X, STARTING_Y);
+			ctx.fillText(lost, canvas.width / 2, canvas.height / 2);
 		} else {
 			ctx.fillStyle = "green";
-			ctx.fillText(start, STARTING_X, STARTING_Y);
+			ctx.fillText(start, canvas.width / 2, canvas.height / 2);
 		}
 	},
 	displayScore() {
@@ -48,20 +48,23 @@ const game = {
 };
 
 const snake = {
-	dirX: 10,
+	STARTING_X: canvas.width / 2 - GRID_SIZE / 2, //
+	STARTING_Y: canvas.height / 2,
+	dirX: GRID_SIZE,
 	dirY: 0,
+	isTurning: false,
 	bodyParts: [
 		{
-			x: STARTING_X,
-			y: STARTING_Y,
+			x: this.STARTING_X,
+			y: this.STARTING_Y,
 		},
 		{
-			x: STARTING_X - GRID_SIZE,
-			y: STARTING_Y,
+			x: this.STARTING_X - GRID_SIZE,
+			y: this.STARTING_Y,
 		},
 		{
-			x: STARTING_X - GRID_SIZE * 2,
-			y: STARTING_Y,
+			x: this.STARTING_X - GRID_SIZE * 2,
+			y: this.STARTING_Y,
 		},
 	],
 	draw() {
@@ -74,7 +77,7 @@ const snake = {
 				GRID_SIZE
 			);
 		}
-		ctx.fillStyle = "black";
+		ctx.fillStyle = "green";
 		ctx.fill();
 		ctx.closePath();
 	},
@@ -93,24 +96,26 @@ const snake = {
 		}
 		this.bodyParts[0].x += this.dirX;
 		this.bodyParts[0].y += this.dirY;
+		this.isTurning = false;
 	},
 	changeDirection(key) {
-		if (key === "ArrowRight" && this.dirX != -10) {
-			this.dirX = 10;
+		if (key === "ArrowRight" && this.dirX != -GRID_SIZE) {
+			this.dirX = GRID_SIZE;
 			this.dirY = 0;
 		}
-		if (key === "ArrowLeft" && this.dirX != 10) {
-			this.dirX = -10;
+		if (key === "ArrowLeft" && this.dirX != GRID_SIZE) {
+			this.dirX = -GRID_SIZE;
 			this.dirY = 0;
 		}
-		if (key === "ArrowUp" && this.dirY != 10) {
+		if (key === "ArrowUp" && this.dirY != GRID_SIZE) {
 			this.dirX = 0;
-			this.dirY = -10;
+			this.dirY = -GRID_SIZE;
 		}
-		if (key === "ArrowDown" && this.dirY != -10) {
+		if (key === "ArrowDown" && this.dirY != -GRID_SIZE) {
 			this.dirX = 0;
-			this.dirY = 10;
+			this.dirY = GRID_SIZE;
 		}
+		this.isTurning = true;
 	},
 	checkBounds() {
 		const headX = this.bodyParts[0].x;
@@ -143,20 +148,20 @@ const snake = {
 		}
 	},
 	reset() {
-		this.dirX = 10;
+		this.dirX = GRID_SIZE;
 		this.dirY = 0;
 		this.bodyParts = [
 			{
-				x: STARTING_X,
-				y: STARTING_Y,
+				x: this.STARTING_X,
+				y: this.STARTING_Y,
 			},
 			{
-				x: STARTING_X - GRID_SIZE,
-				y: STARTING_Y,
+				x: this.STARTING_X - GRID_SIZE,
+				y: this.STARTING_Y,
 			},
 			{
-				x: STARTING_X - GRID_SIZE * 2,
-				y: STARTING_Y,
+				x: this.STARTING_X - GRID_SIZE * 2,
+				y: this.STARTING_Y,
 			},
 		];
 	},
@@ -166,7 +171,7 @@ const food = {
 	draw() {
 		ctx.beginPath();
 		ctx.rect(food.x, food.y, GRID_SIZE, GRID_SIZE);
-		ctx.fillStyle = "green";
+		ctx.fillStyle = "red";
 		ctx.fill();
 		ctx.closePath();
 	},
@@ -176,6 +181,20 @@ const food = {
 		this.y =
 			Math.floor((Math.random() * canvas.height) / GRID_SIZE) * GRID_SIZE;
 	},
+	//prevent food drop on snake tail
+	checkBounds() {
+		for (let n = 0; n < snake.bodyParts.length; n++) {
+			if (
+				this.x > this.bodyParts[n].x - GRID_SIZE &&
+				this.x < this.bodyParts[n].x + GRID_SIZE &&
+				this.y > this.bodyParts[n].y - GRID_SIZE &&
+				this.y < this.bodyParts[n].y + GRID_SIZE
+			) {
+				this.reset();
+				console.log("had to move food.");
+			}
+		}
+	},
 };
 
 document.addEventListener("keydown", function (event) {
@@ -183,10 +202,10 @@ document.addEventListener("keydown", function (event) {
 		if (!game.playing) {
 			game.reset();
 			game.playing = true;
-			interval = setInterval(game.play, game.speed);
+			animationInterval = setInterval(game.play, game.speed);
 		}
 	} else {
-		snake.changeDirection(event.key);
+		!snake.isTurning && snake.changeDirection(event.key);
 	}
 });
 
