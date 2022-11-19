@@ -3,12 +3,12 @@ canvas.width = 500;
 canvas.height = 400;
 const ctx = canvas.getContext("2d");
 
-const GRID_SIZE = 20;
+const GRID_SIZE = 50;
 
 let animationInterval = undefined;
 
 const game = {
-	speed: 200,
+	speed: 300,
 	playing: false,
 	score: 0,
 	play() {
@@ -180,18 +180,18 @@ const food = {
 			Math.floor((Math.random() * canvas.width) / GRID_SIZE) * GRID_SIZE;
 		this.y =
 			Math.floor((Math.random() * canvas.height) / GRID_SIZE) * GRID_SIZE;
+		this.checkBounds();
 	},
 	//prevent food drop on snake tail
 	checkBounds() {
 		for (let n = 0; n < snake.bodyParts.length; n++) {
 			if (
-				this.x > this.bodyParts[n].x - GRID_SIZE &&
-				this.x < this.bodyParts[n].x + GRID_SIZE &&
-				this.y > this.bodyParts[n].y - GRID_SIZE &&
-				this.y < this.bodyParts[n].y + GRID_SIZE
+				this.x > snake.bodyParts[n].x - GRID_SIZE &&
+				this.x < snake.bodyParts[n].x + GRID_SIZE &&
+				this.y > snake.bodyParts[n].y - GRID_SIZE &&
+				this.y < snake.bodyParts[n].y + GRID_SIZE
 			) {
 				this.reset();
-				console.log("had to move food.");
 			}
 		}
 	},
