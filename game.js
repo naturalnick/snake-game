@@ -3,12 +3,12 @@ canvas.width = 500;
 canvas.height = 400;
 const ctx = canvas.getContext("2d");
 
-const GRID_SIZE = 50;
+const GRID_SIZE = 20;
 
 let animationInterval = undefined;
 
 const game = {
-	speed: 300,
+	speed: 100,
 	playing: false,
 	score: 0,
 	play() {
